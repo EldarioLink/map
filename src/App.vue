@@ -1,12 +1,11 @@
 <template>
   <div id="app">
     <div class="controlElements">
-      <input placeholder="Новая точка маршрута" v-on:keyup.enter="saveAddress()"
-      v-on:blur="clearInp" v-model="addLabel" type="text">
+      <input placeholder="Новая точка маршрута" v-on:keyup.enter="savePoint()" v-on:blur="clearInput" v-model="addLabel" type="text">
       <p>Список маршрутов:</p>
-      <draggable v-model="markers" @end="endDrag"  @start="startDrag">
-        <div class="list" style="display:flex" v-for="(markerAddress,key) in markers" :key="key">
-          {{key+1}}:{{markerAddress.label}}
+      <draggable v-model="markers" @end="endDragList" @start="startDragList">
+        <div class="list" style="display:flex" v-for="(point,key) in markers" :key="key">
+          {{key+1}}:{{point.label}}
           <div class="deleteAddress" @click="deleteAddress(key)">&times;</div>
         </div>
       </draggable>
@@ -17,7 +16,7 @@
       </gmap-info-window>
       <GmapMarker @dragstart="markerDragStart(marker,index,$event)" @dragend="markerDragEnd(marker,index,$event)" ref="marker" :key="index" v-for="(marker, index) in markers" @click="toggleInfoWindow(marker,index)" :position="marker.position" :clickable="true"
         :draggable="true" />
-      <gmap-polyline v-if="path.length > 0" :path="path">
+      <gmap-polyline v-if="path.length>0" :path="path">
       </gmap-polyline>
     </GmapMap>
   </div>
@@ -36,8 +35,11 @@
             lng: 108,
           },
           infoText: '1',
+          path: {
+            lat: undefined,
+            lng: undefined
+          }
         },
-        idCounter: 0,
         path: [],
         infoContent: '',
         infoWindowPos: null,
@@ -49,44 +51,30 @@
             height: -35
           }
         },
-        infoWindowCounter: 1,
-        coordsPol: {
-          lat: '',
-          lng: ''
-        },
       }
     },
     methods: {
-      saveAddress() {
+      savePoint() {
         if (this.addLabel === '') {
           return
         }
         let copy = _.cloneDeep(this.markerObj)
         copy.label = this.addLabel;
-        copy.infoText = this.addLabel
-        copy.id = this.idCounter
-        this.idCounter++;
-        this.infoWindowCounter++;
-        this.markers.push(copy)
+        copy.infoText = this.addLabel;
+        copy.path.lat = 5;
+        copy.path.lng = 108;
+        this.markers.push(copy);
         this.addLabel = '';
-        let cordsPol = _.clone(this.coordsPol);
-        cordsPol.lat = 5;
-        cordsPol.lng = 108;
-        this.path.push(cordsPol);
+        this.copyToPath();
       },
 
       deleteAddress(index) {
-        console.log(index)
         this.markers.splice(index, 1);
-        this.infoWinOpen = false
-        this.path.splice(index, 1)
-        // function isPrime(firstEl, index) {
-        //   return firstEl.id === index;
-        // }
-        // console.log(this.markers.findIndex(isPrime));
+        this.infoWinOpen = false;
+        this.path.splice(index, 1);
       },
-      clearInp() {
-        this.addLabel = ''
+      clearInput() {
+        this.addLabel = '';
       },
       toggleInfoWindow: function(marker, idx) {
         this.infoWindowPos = marker.position;
@@ -100,36 +88,29 @@
       },
       markerDragStart() {
         this.infoWinOpen = false;
-
-
       },
       markerDragEnd(marker, index, event) {
-        marker.position.lat = event.latLng.lat()
-        marker.position.lng = event.latLng.lng()
-        let cordsPol = _.clone(this.coordsPol);
-        cordsPol.lat = marker.position.lat;
-        cordsPol.lng = marker.position.lng;
-        this.path.splice(index, 1, cordsPol)
+        marker.position.lat = event.latLng.lat();
+        marker.position.lng = event.latLng.lng();
+        this.markers[index].path.lat = marker.position.lat;
+        this.markers[index].path.lng = marker.position.lng;
+        this.copyToPath();
       },
-      endDrag: function() {
-        // let length = this.markers.length;
-        // for (let i = 0; i < length; i++) {
-        //   this.markers[i].id = i;
-        //   console.log(this.markers[i].id)
-        // }
-
-
+      copyToPath() {
+        this.path.length = 0;
+        for (let i = 0; i < this.markers.length; i++) {
+          this.path.push(this.markers[i].path);
+        }
       },
-      startDrag: function() {
-        console.log(this.markers)
+      endDragList: function() {
+        this.copyToPath();
+      },
+      startDragList: function() {
+        this.infoWinOpen = false;
       },
     },
     mounted() {
       this.$refs.mapRef.$mapPromise.then((map) => {
-        map.panTo({
-          lat: 5,
-          lng: 108
-        })
         map.setOptions({
           gestureHandling: 'none'
         });
