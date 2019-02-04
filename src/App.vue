@@ -52,8 +52,8 @@
           }
         },
         centerMap: {
-          lat: undefined,
-          lng: undefined
+          lat: 5,
+          lng: 108
         }
       }
     },
