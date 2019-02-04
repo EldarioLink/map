@@ -147,9 +147,10 @@
 <style>
   #app {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     margin-top: 10px;
     font-size: 15pt;
+    flex-wrap: wrap;
     color: #330000;
   }
 
