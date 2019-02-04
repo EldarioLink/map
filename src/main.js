@@ -4,6 +4,9 @@ import * as VueGoogleMaps from 'vue2-google-maps'
 import VueLodash from 'vue-lodash'
 import draggable from 'vuedraggable'
 
+
+/** Для перетаскивания элементов списка взял готовое решение - https://github.com/SortableJS/Vue.Draggable
+       */
 Vue.component('draggable', draggable)
 Vue.use(VueLodash)
 Vue.use(VueGoogleMaps, {
